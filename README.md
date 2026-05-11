@@ -1,0 +1,1 @@
+Полный и детальный гайд для https://docs.astral.sh/uv/
