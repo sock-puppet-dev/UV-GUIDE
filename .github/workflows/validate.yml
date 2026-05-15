@@ -1,0 +1,44 @@
+name: Validate guide
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.14"
+
+      - name: Check lockfile
+        run: uv lock --check
+
+      - name: Check Markdown code fences
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          fence_count = sum(
+              1
+              for line in Path("README.md").read_text(encoding="utf-8").splitlines()
+              if line.startswith("```")
+          )
+
+          if fence_count % 2:
+              raise SystemExit(f"README.md has an odd number of code fences: {fence_count}")
+          PY

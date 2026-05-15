@@ -14,6 +14,20 @@ uv 0.11.14
 uv --version
 ```
 
+## Как читать этот гайд
+
+Если вы новичок, не пытайтесь читать все 20 разделов за один раз.
+
+Лучший маршрут:
+
+1. Прочитайте разделы 1-5, чтобы понять базовые слова и главную идею `uv`.
+2. Выполните разделы 6-10 на маленьком учебном проекте.
+3. Вернитесь к разделам 11-14, когда понадобятся скрипты, CLI-инструменты, старые `requirements.txt` или публикация пакетов.
+4. Используйте разделы 15-18 как справочник и набор рецептов.
+5. В конце проверьте мини-тренировку из раздела 19.
+
+Так гайд работает как учебник и как справочник: сначала короткий путь, потом детали.
+
 ## Содержание
 
 1. [Что такое uv](#1-что-такое-uv)
@@ -35,7 +49,8 @@ uv --version
 17. [Лучшие практики](#17-лучшие-практики)
 18. [Шпаргалка команд](#18-шпаргалка-команд)
 19. [Как учиться дальше](#19-как-учиться-дальше)
-20. [Источники](#20-источники)
+20. [Как устроен этот репозиторий](#20-как-устроен-этот-репозиторий)
+21. [Источники](#21-источники)
 
 ## 1. Что такое uv
 
@@ -199,6 +214,18 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 wget -qO- https://astral.sh/uv/install.sh | sh
 ```
 
+Установить конкретную версию можно через URL с номером версии:
+
+```bash
+curl -LsSf https://astral.sh/uv/0.11.14/install.sh | sh
+```
+
+Если вы хотите сначала посмотреть install script:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | less
+```
+
 После установки перезапустите терминал или выполните команду, которую установщик покажет в конце. Это нужно, чтобы shell увидел путь к `uv`.
 
 ### Windows PowerShell
@@ -207,6 +234,18 @@ wget -qO- https://astral.sh/uv/install.sh | sh
 
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Установить конкретную версию:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.11.14/install.ps1 | iex"
+```
+
+Посмотреть install script перед запуском:
+
+```powershell
+powershell -c "irm https://astral.sh/uv/install.ps1 | more"
 ```
 
 После установки откройте новое окно PowerShell.
@@ -223,6 +262,26 @@ brew install uv
 
 ```bash
 brew upgrade uv
+```
+
+### MacPorts на macOS
+
+Если вы используете MacPorts:
+
+```bash
+sudo port install uv
+```
+
+### WinGet на Windows
+
+```powershell
+winget install --id=astral-sh.uv -e
+```
+
+### Scoop на Windows
+
+```powershell
+scoop install main/uv
 ```
 
 ### Через pipx
@@ -242,6 +301,36 @@ pip install uv
 ```
 
 Но для новичков лучше standalone-установщик, Homebrew или `pipx`, потому что так меньше шансов установить `uv` в не то окружение.
+
+### Docker
+
+`uv` также доступен как Docker image:
+
+```bash
+docker run --rm ghcr.io/astral-sh/uv:latest uv --version
+```
+
+Для новичка Docker-вариант обычно нужен не для установки на компьютер, а для CI, контейнеров и воспроизводимых сборок.
+
+### GitHub Releases
+
+Готовые бинарные файлы можно скачать со страницы релизов:
+
+```text
+https://github.com/astral-sh/uv/releases
+```
+
+Этот способ полезен, если вы не хотите запускать install script или package manager.
+
+### Cargo
+
+Если у вас уже есть Rust toolchain:
+
+```bash
+cargo install --locked uv
+```
+
+Новичкам этот способ обычно не нужен: он собирает `uv` из исходников и требует Rust.
 
 ### Обновление uv
 
@@ -283,7 +372,51 @@ echo 'eval "$(uv generate-shell-completion bash)"' >> ~/.bashrc
 echo 'eval "$(uvx --generate-shell-completion bash)"' >> ~/.bashrc
 ```
 
+Для `fish`:
+
+```bash
+echo 'uv generate-shell-completion fish | source' > ~/.config/fish/completions/uv.fish
+echo 'uvx --generate-shell-completion fish | source' > ~/.config/fish/completions/uvx.fish
+```
+
+Для PowerShell:
+
+```powershell
+if (!(Test-Path -Path $PROFILE)) {
+  New-Item -ItemType File -Path $PROFILE -Force
+}
+Add-Content -Path $PROFILE -Value '(& uv generate-shell-completion powershell) | Out-String | Invoke-Expression'
+Add-Content -Path $PROFILE -Value '(& uvx --generate-shell-completion powershell) | Out-String | Invoke-Expression'
+```
+
 После этого перезапустите терминал.
+
+### Удаление uv
+
+Если нужно полностью удалить `uv`, сначала можно очистить данные, которые он хранит:
+
+```bash
+uv cache clean
+rm -r "$(uv python dir)"
+rm -r "$(uv tool dir)"
+```
+
+Потом удалите бинарные файлы `uv` и `uvx` тем способом, которым они были установлены.
+
+Примеры:
+
+```bash
+brew uninstall uv
+pipx uninstall uv
+pip uninstall uv
+```
+
+Для standalone-установки на macOS и Linux бинарные файлы обычно лежат в `~/.local/bin/`. Перед удалением проверьте путь:
+
+```bash
+which uv
+which uvx
+```
 
 ## 4. Первый запуск
 
@@ -471,6 +604,8 @@ uv run main.py
 6. Запусти `main.py` внутри окружения проекта.
 
 Новичку важно запомнить: чаще всего не нужно вручную активировать `.venv`. Используйте `uv run`.
+
+Важный нюанс: `uv run` следит, чтобы нужные зависимости были установлены, но по умолчанию не удаляет из `.venv` лишние пакеты, которых нет в lock-файле. Если вы хотите именно очистить окружение и привести его к `uv.lock`, используйте `uv sync`.
 
 ### Что появится после первого запуска
 
@@ -865,8 +1000,8 @@ uv sync
 | Команда | Что делает |
 |---|---|
 | `uv lock` | Обновляет `uv.lock` |
-| `uv sync` | Устанавливает окружение по `uv.lock` |
-| `uv run ...` | Перед запуском автоматически lock + sync, если нужно |
+| `uv sync` | Устанавливает окружение по `uv.lock` и по умолчанию удаляет лишние пакеты |
+| `uv run ...` | Перед запуском автоматически lock + sync, если нужно, но не делает точную очистку окружения |
 
 ### Почему `uv run` обычно достаточно
 
@@ -883,6 +1018,12 @@ uv run python main.py
 - установлены ли нужные зависимости.
 
 Поэтому новичку не нужно каждый раз думать о ручной установке пакетов.
+
+Но если в `.venv` случайно появились лишние пакеты, `uv run` обычно оставит их на месте. Для точной очистки выполните:
+
+```bash
+uv sync
+```
 
 ### Когда использовать `uv sync`
 
@@ -994,8 +1135,10 @@ uv export --format pylock.toml -o pylock.toml
 Экспорт CycloneDX SBOM:
 
 ```bash
-uv export --format cyclonedx1.5
+uv export --format cyclonedx1.5 -o sbom.json
 ```
+
+CycloneDX SBOM полезен для security, compliance и supply-chain анализа. В официальной документации экспорт CycloneDX помечен как preview, поэтому его поведение может измениться в будущих версиях `uv`.
 
 Для обычной разработки экспорт чаще не нужен. Основной файл проекта с точными версиями - `uv.lock`.
 
@@ -1189,6 +1332,14 @@ uv run --with rich progress.py
 
 Минус подхода: зависимость указана в команде, а не в файле. Через неделю можно забыть, что нужно добавить `--with rich`.
 
+Если вы запускаете такой файл из папки, где уже есть `pyproject.toml`, `uv run` добавит зависимости текущего проекта. Если скрипт должен быть полностью независимым от проекта, используйте `--no-project` до имени файла:
+
+```bash
+uv run --no-project --with rich progress.py
+```
+
+Правило простое: флаги `uv run`, например `--no-project`, пишутся до имени скрипта.
+
 ### Скрипт с inline metadata
 
 Лучше записать зависимости прямо в скрипт.
@@ -1236,6 +1387,8 @@ uv run example.py
 Если у скрипта есть inline metadata, `uv run script.py` запускает его в окружении скрипта, изолированном от зависимостей проекта.
 
 Это хорошо: скрипт становится самодостаточным.
+
+Для такого скрипта `--no-project` обычно не нужен: inline metadata уже говорит `uv`, что зависимости нужно брать из самого файла.
 
 ### Lock-файл для скрипта
 
@@ -1574,6 +1727,18 @@ uv init --lib my-library
 cd my-library
 ```
 
+`uv init --lib` создает пакетируемый проект. Для существующего проекта перед публикацией важно проверить, что в `pyproject.toml` есть `[build-system]`.
+
+Пример для uv build backend:
+
+```toml
+[build-system]
+requires = ["uv_build>=0.11.14,<0.12"]
+build-backend = "uv_build"
+```
+
+`uv_build` хорошо подходит для большинства pure Python-проектов. Если у библиотеки есть C/Rust extension modules или сложные build scripts, может понадобиться другой backend, например Hatchling, Maturin или Setuptools.
+
 ### Собрать пакет
 
 ```bash
@@ -1592,6 +1757,14 @@ dist/
 my_library-0.1.0-py3-none-any.whl
 my_library-0.1.0.tar.gz
 ```
+
+Перед публикацией лучше проверить сборку так:
+
+```bash
+uv build --no-sources
+```
+
+Почему это важно: `uv build` по умолчанию учитывает локальные источники из `tool.uv.sources`. Флаг `--no-sources` проверяет, что пакет соберется и без этих локальных подсказок, то есть ближе к тому, как его увидят другие build-инструменты и пользователи.
 
 ### Изменить версию проекта
 
@@ -1640,6 +1813,8 @@ uv publish
 ```
 
 Не храните токены в Git.
+
+Если публикуете из GitHub Actions или другой CI-системы с Trusted Publisher, токен может быть не нужен: PyPI может выдать временные credentials для конкретного workflow. Для новичка самый простой локальный путь - PyPI token, но в командных проектах лучше изучить Trusted Publishing.
 
 ### Проверить, что пакет устанавливается
 
@@ -2304,10 +2479,18 @@ uv run ruff check .
 uv run ruff format .
 ```
 
-Потом удалите окружение:
+Потом удалите окружение. Делайте это только внутри учебного проекта `weather-demo`, чтобы случайно не удалить нужную папку в другом месте.
+
+macOS и Linux:
 
 ```bash
 rm -rf .venv
+```
+
+Windows PowerShell:
+
+```powershell
+Remove-Item -Recurse -Force .venv
 ```
 
 И восстановите:
@@ -2319,7 +2502,31 @@ uv run main.py
 
 Главная мысль тренировки: `.venv` можно пересоздать, потому что проект описан в `pyproject.toml` и `uv.lock`.
 
-## 20. Источники
+## 20. Как устроен этот репозиторий
+
+Этот репозиторий сам настроен как маленький `uv`-проект, чтобы его структура не противоречила гайду.
+
+| Файл | Зачем нужен |
+|---|---|
+| `README.md` | Основной учебный гайд |
+| `pyproject.toml` | Минимальные метаданные проекта |
+| `.python-version` | Закрепленная учебная версия Python |
+| `uv.lock` | Воспроизводимый lock-файл проекта |
+| `.gitignore` | Исключает `.venv`, IDE-настройки, Python/tool cache, build-артефакты и `.DS_Store` |
+| `.github/workflows/validate.yml` | Минимальная CI-проверка lock-файла и Markdown code fences |
+
+В проекте нет runtime-зависимостей, потому что это документационный репозиторий. Но `uv.lock` все равно полезен: он показывает правильную практику и фиксирует состояние проекта.
+
+Проверки, которые стоит запускать после правок:
+
+```bash
+uv lock --check
+git diff --check
+```
+
+В CI уже есть базовая проверка `uv lock --check` и проверка четности Markdown code fences. Если добавите Markdown lint или link checker, хорошо вынести их в dev-зависимости и запускать через `uv run`.
+
+## 21. Источники
 
 Основные официальные страницы, по которым составлен гайд:
 
@@ -2335,6 +2542,9 @@ uv run main.py
 - [Running commands in projects](https://docs.astral.sh/uv/concepts/projects/run/)
 - [Locking and syncing](https://docs.astral.sh/uv/concepts/projects/sync/)
 - [Configuring projects](https://docs.astral.sh/uv/concepts/projects/config/)
+- [Exporting lockfiles](https://docs.astral.sh/uv/concepts/projects/export/)
+- [Build backend](https://docs.astral.sh/uv/concepts/build-backend/)
+- [Using uv in GitHub Actions](https://docs.astral.sh/uv/guides/integration/github/)
 - [Command reference](https://docs.astral.sh/uv/reference/cli/)
 - [The pip interface](https://docs.astral.sh/uv/pip/)
 - [Using Python environments](https://docs.astral.sh/uv/pip/environments/)
