@@ -28,17 +28,11 @@ jobs:
       - name: Check lockfile
         run: uv lock --check
 
-      - name: Check Markdown code fences
-        run: |
-          python - <<'PY'
-          from pathlib import Path
+      - name: Validate Markdown
+        run: uv run python scripts/validate_markdown.py
 
-          fence_count = sum(
-              1
-              for line in Path("README.md").read_text(encoding="utf-8").splitlines()
-              if line.startswith("```")
-          )
+      - name: Check local links
+        run: uv run python scripts/check_links.py
 
-          if fence_count % 2:
-              raise SystemExit(f"README.md has an odd number of code fences: {fence_count}")
-          PY
+      - name: Check external links
+        run: uv run python scripts/check_links.py --external
